@@ -45,25 +45,53 @@ def draw_tension_meter(screen):
     bar_color = GREEN if tension < 60 else YELLOW if tension < 90 else RED
     pygame.draw.rect(screen, bar_color, (52, 552, tension * 1.96, 16))
 
+#def handle_input(event):
+#    global cast_in_progress, cast_location, fish_hooked
+#    global tension, bite_timer, bite_wait_time
+#
+#    if event.type == pygame.KEYDOWN:
+#        if event.key == pygame.K_SPACE:
+#            if not cast_in_progress:
+#                cast_location = crosshair_pos.copy()
+#                cast_in_progress = True
+#                fish_hooked = False
+#                bite_timer = 0
+#                bite_wait_time = random.randint(60, 180)
+#                sounds.play_cast()
+#            elif fish_hooked:
+#                # Reeling while fish is hooked
+#                tension += 10
+#                if tension >= 100:
+#                    sounds.play_break()
+#                    reset_cast()
 def handle_input(event):
     global cast_in_progress, cast_location, fish_hooked
     global tension, bite_timer, bite_wait_time
 
-    if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_SPACE:
-            if not cast_in_progress:
-                cast_location = crosshair_pos.copy()
-                cast_in_progress = True
-                fish_hooked = False
-                bite_timer = 0
-                bite_wait_time = random.randint(60, 180)
-                sounds.play_cast()
-            elif fish_hooked:
-                # Reeling while fish is hooked
-                tension += 10
-                if tension >= 100:
+    if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+        if not cast_in_progress:
+            cast_location = crosshair_pos.copy()
+            cast_in_progress = True
+            fish_hooked = False
+            bite_timer = 0
+            bite_wait_time = random.randint(60, 180)
+            try:
+                sounds.play_cast()  # 🎵 Cast sound
+            except Exception as e:
+                print("Warning: Cast sound failed:", e)
+        elif fish_hooked:
+            tension += 10
+            if tension >= 100:
+                try:
                     sounds.play_break()
-                    reset_cast()
+                except Exception as e:
+                    print("Warning: Break sound failed:", e)
+                cast_in_progress = False
+                fish_hooked = False
+                tension = 0
+
+#
+#
 
 def update(screen, keys):
     global cast_in_progress, fish_hooked, tension, bite_timer
