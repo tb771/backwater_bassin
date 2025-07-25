@@ -8,6 +8,7 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 YELLOW = (255, 255, 0)
 
+# Globals
 crosshair_pos = [400, 300]
 crosshair_speed = 5
 crosshair_radius = 8
@@ -19,6 +20,13 @@ tension = 0
 bite_timer = 0
 bite_wait_time = 0
 
+# Font for rendering text
+#font = pygame.font.SysFont(None, 36)
+font = None  # Will be set later from main.py
+
+def set_font(f):
+    global font
+    font = f
 
 
 def draw_crosshair(screen):
@@ -33,7 +41,6 @@ def draw_cast_splash(screen):
         pygame.draw.circle(screen, RED, cast_location, 10, 2)
 
 def draw_tension_meter(screen):
-    global tension
     pygame.draw.rect(screen, WHITE, (50, 550, 200, 20), 2)
     bar_color = GREEN if tension < 60 else YELLOW if tension < 90 else RED
     pygame.draw.rect(screen, bar_color, (52, 552, tension * 1.96, 16))
@@ -50,92 +57,50 @@ def handle_input(event):
                 fish_hooked = False
                 bite_timer = 0
                 bite_wait_time = random.randint(60, 180)
-                sounds.play_cast()  # 🎵 Cast sound
+                sounds.play_cast()
             elif fish_hooked:
+                # Reeling while fish is hooked
                 tension += 10
                 if tension >= 100:
                     sounds.play_break()
-                    cast_in_progress = False
-                    fish_hooked = False
-                    tension = 0
-                   
-    if event.key == pygame.K_SPACE:
-        if not cast_in_progress:
-            cast_location = crosshair_pos.copy()
-            cast_in_progress = True
-            fish_hooked = False
-            
-
-
+                    reset_cast()
 
 def update(screen, keys):
     global cast_in_progress, fish_hooked, tension, bite_timer
 
+    # Move crosshair if not casting
     if not cast_in_progress:
         if keys[pygame.K_LEFT]: crosshair_pos[0] -= crosshair_speed
         if keys[pygame.K_RIGHT]: crosshair_pos[0] += crosshair_speed
         if keys[pygame.K_UP]: crosshair_pos[1] -= crosshair_speed
         if keys[pygame.K_DOWN]: crosshair_pos[1] += crosshair_speed
-    elif fish_hooked:
+
+    # Passive tension decay
+    if fish_hooked and cast_in_progress:
         tension -= 1
         if tension <= 0:
+            tension = 0
             cast_in_progress = False
             fish_hooked = False
-            tension = 0
-            screen.blit(font.render("Fish caught!", True, GREEN), (cast_location[0], cast_location[1] - 40))
+            # Optional: display catch message can be handled in main.py
 
     draw_crosshair(screen)
+
     if cast_in_progress:
         draw_cast_splash(screen)
         if not fish_hooked:
             bite_timer += 1
             if bite_timer >= bite_wait_time:
                 fish_hooked = True
-                sounds.play_bite()  # 🎵 Bite sound 
                 tension = 30
-                
-
-
-        if fish_hooked:
-            screen.blit(font.render("Reel it in!", True, WHITE), (cast_location[0], cast_location[1] - 40))
-            draw_tension_meter(screen)
-
-    if __name__ == "__main__":
-        pygame.init()
-        screen = pygame.display.set_mode((800, 600))
-        pygame.display.set_caption("Backwater Bassin'")
-        font = pygame.font.SysFont(None, 36) 
-      #
-    clock = pygame.time.Clock()
-running = True
-
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        else:
-            handle_input(event)
-
-    screen.fill((0, 0, 0))  # Clear the screen
-
-    draw_crosshair(screen)
-
-    if cast_in_progress:
-        draw_cast_splash(screen)
-        if not fish_hooked:
-            bite_timer += 1
-            if bite_timer >= bite_wait_time:
-                fish_hooked = True
-                sounds.play_bite()  # 🎵 Bite sound
-                tension = 30  # Optional: Start with some tension
+                sounds.play_bite()
         else:
             screen.blit(font.render("Reel it in!", True, WHITE), (cast_location[0], cast_location[1] - 40))
             draw_tension_meter(screen)
 
-    pygame.display.flip()
-    clock.tick(60)
-
-pygame.quit()
-   
-    
+def reset_cast():
+    global cast_in_progress, fish_hooked, tension
+    cast_in_progress = False
+    fish_hooked = False
+    tension = 0
 
