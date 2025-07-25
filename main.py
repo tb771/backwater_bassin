@@ -7,12 +7,13 @@ import scoreboard
 
 # Init
 pygame.init()
+
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Backwater Bassin'")
 clock = pygame.time.Clock()
-
 font = pygame.font.SysFont(None, 36)
 fish.set_font(font)
+scoreboard.set_font(font)
 
 fish_img = fish_sprite.load_fish_sprite()
 

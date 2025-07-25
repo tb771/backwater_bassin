@@ -1,7 +1,12 @@
 import pygame
 
 score = 0
-font = pygame.font.SysFont(None, 36)
+font = None
+
+def set_font(f):
+    global font
+    font = f
+
 
 def increment_score():
     global score
