@@ -16,19 +16,20 @@ crosshair_radius = 8
 cast_location = None
 cast_in_progress = False
 fish_hooked = False
-fish_caught = False
-
 tension = 0
 bite_timer = 0
 bite_wait_time = 0
-caught_timer = 0
+reel_timer = 0
 score = 0
 
-font = None
+font = None  # set from main
 
 def set_font(f):
     global font
     font = f
+
+def get_score():
+    return score
 
 def draw_crosshair(screen):
     pygame.draw.circle(screen, WHITE, crosshair_pos, crosshair_radius, 2)
@@ -43,8 +44,8 @@ def draw_cast_splash(screen):
 
 def draw_tension_meter(screen):
     pygame.draw.rect(screen, WHITE, (50, 550, 200, 20), 2)
-    bar_color = GREEN if tension < 60 else YELLOW if tension < 90 else RED
-    pygame.draw.rect(screen, bar_color, (52, 552, tension * 1.96, 16))
+    bar_color = GREEN if tension < 80 else YELLOW if tension < 100 else RED
+    pygame.draw.rect(screen, bar_color, (52, 552, min(tension, 100) * 1.96, 16))
 
 def handle_input(event):
     global cast_in_progress, cast_location, fish_hooked
@@ -62,8 +63,6 @@ def handle_input(event):
             except:
                 pass
         elif fish_hooked:
-            # Reel in
-            global tension
             tension += 10
             if tension >= 100:
                 try:
@@ -73,30 +72,15 @@ def handle_input(event):
                 reset_cast()
 
 def update(screen, keys):
-    global cast_in_progress, fish_hooked, fish_caught
-    global tension, bite_timer, score, caught_timer
+    global cast_in_progress, fish_hooked, tension
+    global bite_timer, reel_timer, score
 
-    # Move crosshair before casting
+    # Move crosshair
     if not cast_in_progress:
         if keys[pygame.K_LEFT]: crosshair_pos[0] -= crosshair_speed
         if keys[pygame.K_RIGHT]: crosshair_pos[0] += crosshair_speed
         if keys[pygame.K_UP]: crosshair_pos[1] -= crosshair_speed
         if keys[pygame.K_DOWN]: crosshair_pos[1] += crosshair_speed
-
-    # Passive tension drop
-    if cast_in_progress and fish_hooked:
-        tension -= 1
-        if tension <= 0:
-            tension = 0
-            fish_hooked = False
-            cast_in_progress = False
-            score += 1
-            fish_caught = True
-            caught_timer = 60
-            try:
-                sounds.play_catch()
-            except:
-                pass
 
     draw_crosshair(screen)
 
@@ -108,28 +92,49 @@ def update(screen, keys):
             if bite_timer >= bite_wait_time:
                 fish_hooked = True
                 tension = 30
+                reel_timer = 0
                 try:
                     sounds.play_bite()
                 except:
                     pass
 
-        if fish_hooked:
-            screen.blit(font.render("Reel it in!", True, WHITE), (cast_location[0], cast_location[1] - 40))
+        elif fish_hooked:
+            # Tension decay
+            tension = max(0, tension - 1)
+
+            # Show reel warning
+            screen.blit(font.render("Reel it in!", True, WHITE),
+                        (cast_location[0], cast_location[1] - 40))
             draw_tension_meter(screen)
 
-    if fish_caught:
-        caught_timer -= 1
-        if caught_timer > 0:
-            screen.blit(font.render("Fish Caught!", True, GREEN), (cast_location[0], cast_location[1] - 40))
-        else:
-            fish_caught = False
+            # Catch logic
+            if 20 < tension < 80:
+                reel_timer += 1
+                if reel_timer >= 180:  # ~3 seconds of good tension
+                    try:
+                        sounds.play_catch()
+                    except:
+                        pass
+                    score += 1
+                    reset_cast()
+            else:
+                reel_timer = 0
+
+            # Break or lose fish
+            if tension >= 100:
+                try:
+                    sounds.play_break()
+                except:
+                    pass
+                reset_cast()
+            elif tension <= 0:
+                reset_cast()
 
 def reset_cast():
-    global cast_in_progress, fish_hooked, tension
+    global cast_in_progress, fish_hooked, tension, reel_timer
     cast_in_progress = False
     fish_hooked = False
     tension = 0
+    reel_timer = 0
 
-def get_score():
-    return score
 
