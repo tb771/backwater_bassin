@@ -7,24 +7,20 @@ FISH_TURN_CHANCE = 0.02
 IDLE_CHANCE = 0.01
 TAIL_WAG_SPEED = 0.15
 
+# Define fisherman zone globally for reuse
+FISHERMAN_ZONE = pygame.Rect(325, 500, 150, 100)
+
 class Fish:
     def __init__(self, screen_width, screen_height):
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.size = random.choice([10, 14, 18])
 
-        # Avoid spawning in the fisherman zone (bottom center)
-        fisherman_zone = pygame.Rect(
-            screen_width // 2 - 75,      # center minus half width
-            screen_height - 100,         # from near bottom
-            150, 100                     # width, height
-        )
-
         while True:
             self.x = random.randint(0, screen_width)
             self.y = random.randint(0, screen_height)
             fish_rect = pygame.Rect(self.x, self.y, self.size, self.size // 2)
-            if not fish_rect.colliderect(fisherman_zone):
+            if not fish_rect.colliderect(FISHERMAN_ZONE):
                 break
 
         base_speed = max(0.4, 10 / self.size)
@@ -47,6 +43,21 @@ class Fish:
             self.dx *= -1
         if self.y < 0 or self.y > self.screen_height:
             self.dy *= -1
+
+        # Avoid fisherman zone during movement
+        fish_rect = pygame.Rect(self.x, self.y, self.size, self.size // 2)
+        if fish_rect.colliderect(FISHERMAN_ZONE):
+            # Reverse direction and steer away
+            if self.x < FISHERMAN_ZONE.centerx:
+                self.dx = -abs(self.dx)
+            else:
+                self.dx = abs(self.dx)
+            if self.y < FISHERMAN_ZONE.centery:
+                self.dy = -abs(self.dy)
+            else:
+                self.dy = abs(self.dy)
+            self.x += self.dx * 2
+            self.y += self.dy * 2
 
         # Random turning
         if random.random() < FISH_TURN_CHANCE:
@@ -88,7 +99,6 @@ class Fish:
             rotated_tail.append((tail_center_x + rx, tail_center_y + ry))
 
         pygame.draw.polygon(screen, FISH_COLOR, rotated_tail)
-
 
 class FishSwarm:
     def __init__(self, count, screen_width, screen_height):
