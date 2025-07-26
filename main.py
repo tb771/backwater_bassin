@@ -6,7 +6,7 @@ import fisherman
 import scoreboard
 from fish_swarm import FishSwarm
 from water_effects import WaterEffects
-
+from environment import draw_grass
 
 # Init
 pygame.init()
@@ -49,6 +49,7 @@ def main():
         swarm.update()
         swarm.draw(screen)
   
+        draw_grass(screen, screen_width, screen_height)
 
         pygame.display.flip()
         clock.tick(60)
