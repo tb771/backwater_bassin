@@ -5,6 +5,7 @@ import fish_sprite
 import fisherman
 import scoreboard
 from fish_swarm import FishSwarm
+from water_effects import WaterEffects
 
 
 # Init
@@ -13,6 +14,8 @@ pygame.init()
 swarm = FishSwarm(count=10, screen_width=800, screen_height=600)
 
 screen = pygame.display.set_mode((800, 600))
+screen_width, screen_height = screen.get_size()
+water = WaterEffects(screen_width, screen_height)  
 pygame.display.set_caption("Backwater Bassin'")
 clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 36)
@@ -25,6 +28,9 @@ def main():
     running = True
     while running:
         screen.fill((70, 130, 180))  # water color
+
+        water.update()
+        water.draw(screen)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
