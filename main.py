@@ -4,9 +4,13 @@ import fishing_logic as fish
 import fish_sprite
 import fisherman
 import scoreboard
+from fish_swarm import FishSwarm
+
 
 # Init
 pygame.init()
+
+swarm = FishSwarm(count=10, screen_width=800, screen_height=600)
 
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Backwater Bassin'")
@@ -35,6 +39,10 @@ def main():
 
         fisherman.draw_fisherman(screen)
         scoreboard.draw_score(screen)
+#random fish activity
+        swarm.update()
+        swarm.draw(screen)
+  
 
         pygame.display.flip()
         clock.tick(60)
