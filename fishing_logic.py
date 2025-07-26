@@ -110,13 +110,25 @@ def update(screen, keys):
             # Catch logic
             if 20 < tension < 80:
                 reel_timer += 1
-                if reel_timer >= 180:  # ~3 seconds of good tension
+#                if reel_timer >= 180:  # ~3 seconds of good tension
+#                    try:
+#                        sounds.play_catch()
+#                    except:
+#                        pass
+#                    print("Fish caught!")
+#                    score += 1
+#                    reset_cast()
+                if reel_timer == 180:
                     try:
                         sounds.play_catch()
                     except:
                         pass
+                    screen.blit(font.render("Fish Caught!", True, WHITE), (cast_location[0], cast_location[1] - 60))
                     score += 1
+                    pygame.display.update()
+                    pygame.time.delay(1000)  # Pause to show message for 1 second
                     reset_cast()
+
             else:
                 reel_timer = 0
 
