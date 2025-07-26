@@ -21,6 +21,7 @@ bite_timer = 0
 bite_wait_time = 0
 reel_timer = 0
 score = 0
+cast_cooldown = 0  # 1.5 second cooldown (90 frames at 60 FPS)
 
 font = None  # set from main
 
@@ -49,9 +50,9 @@ def draw_tension_meter(screen):
 
 def handle_input(event):
     global cast_in_progress, cast_location, fish_hooked
-    global tension, bite_timer, bite_wait_time
+    global tension, bite_timer, bite_wait_time, cast_cooldown
 
-    if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+    if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and cast_cooldown == 0:
         if not cast_in_progress:
             cast_location = crosshair_pos.copy()
             cast_in_progress = True
@@ -73,10 +74,14 @@ def handle_input(event):
 
 def update(screen, keys):
     global cast_in_progress, fish_hooked, tension
-    global bite_timer, reel_timer, score
+    global bite_timer, reel_timer, score, cast_cooldown
+
+    # Cooldown countdown
+    if cast_cooldown > 0:
+        cast_cooldown -= 1
 
     # Move crosshair
-    if not cast_in_progress:
+    if not cast_in_progress or cast_cooldown > 0:
         if keys[pygame.K_LEFT]: crosshair_pos[0] -= crosshair_speed
         if keys[pygame.K_RIGHT]: crosshair_pos[0] += crosshair_speed
         if keys[pygame.K_UP]: crosshair_pos[1] -= crosshair_speed
@@ -110,14 +115,6 @@ def update(screen, keys):
             # Catch logic
             if 20 < tension < 80:
                 reel_timer += 1
-#                if reel_timer >= 180:  # ~3 seconds of good tension
-#                    try:
-#                        sounds.play_catch()
-#                    except:
-#                        pass
-#                    print("Fish caught!")
-#                    score += 1
-#                    reset_cast()
                 if reel_timer == 180:
                     try:
                         sounds.play_catch()
@@ -126,9 +123,8 @@ def update(screen, keys):
                     screen.blit(font.render("Fish Caught!", True, WHITE), (cast_location[0], cast_location[1] - 60))
                     score += 1
                     pygame.display.update()
-                    pygame.time.delay(1000)  # Pause to show message for 1 second
+                    pygame.time.delay(1000)
                     reset_cast()
-
             else:
                 reel_timer = 0
 
@@ -143,10 +139,10 @@ def update(screen, keys):
                 reset_cast()
 
 def reset_cast():
-    global cast_in_progress, fish_hooked, tension, reel_timer
+    global cast_in_progress, fish_hooked, tension, reel_timer, cast_cooldown
     cast_in_progress = False
     fish_hooked = False
     tension = 0
     reel_timer = 0
-
+    cast_cooldown = 90  # 1.5 second delay
 
