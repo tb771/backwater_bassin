@@ -24,7 +24,7 @@ cd backwater_bassin
 python3 -m venv .venv
 source .venv/bin/activate      # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-python main.py
+python3 main.py
 
  Make sure you have Python 3.12+ and Pygame installed from the requirements!
 Gameplay Instructions
